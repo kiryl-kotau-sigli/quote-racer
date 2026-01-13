@@ -21,14 +21,53 @@ function formatQuoteForSharing(quote: Quote): string {
 }
 
 function copyToClipboard(text: string): Promise<void> {
-  return navigator.clipboard.writeText(text);
+  // Check if Clipboard API is available (requires secure context - HTTPS or localhost)
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+
+  // Fallback for non-secure contexts (HTTP)
+  return new Promise((resolve, reject) => {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.width = '2em';
+    textArea.style.height = '2em';
+    textArea.style.padding = '0';
+    textArea.style.border = 'none';
+    textArea.style.outline = 'none';
+    textArea.style.boxShadow = 'none';
+    textArea.style.background = 'transparent';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      if (successful) {
+        resolve();
+      } else {
+        reject(new Error('Failed to copy using execCommand'));
+      }
+    } catch (err) {
+      document.body.removeChild(textArea);
+      reject(err);
+    }
+  });
 }
 
 export function useShareQuote(quote: Quote | null): UseShareQuoteResult {
   const [isSharing, setIsSharing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isSupported = typeof navigator !== 'undefined' && 'share' in navigator;
+  const isSupported =
+    typeof navigator !== 'undefined' &&
+    'share' in navigator &&
+    typeof navigator.share === 'function';
 
   const shareQuote = useCallback(async () => {
     if (!quote) {
@@ -46,27 +85,46 @@ export function useShareQuote(quote: Quote | null): UseShareQuoteResult {
         text: shareText,
       };
 
-      if (isSupported && navigator.share) {
+      const canShare =
+        typeof navigator !== 'undefined' &&
+        'share' in navigator &&
+        typeof navigator.share === 'function';
+
+      if (canShare) {
         try {
           await navigator.share(shareData);
         } catch (shareError) {
-          if ((shareError as Error).name !== 'AbortError') {
-            throw shareError;
+          const error = shareError as Error;
+          if (error.name === 'AbortError') {
+            return;
           }
-          return;
+          console.warn('Web Share API failed, falling back to clipboard:', error);
+          try {
+            await copyToClipboard(shareText);
+            alert('Quote copied to clipboard!');
+          } catch (clipboardError) {
+            console.error('Clipboard copy failed:', clipboardError);
+            alert('Failed to share. Please try again.');
+          }
         }
       } else {
-        await copyToClipboard(shareText);
-        alert('Quote copied to clipboard!');
+        try {
+          await copyToClipboard(shareText);
+          alert('Quote copied to clipboard!');
+        } catch (clipboardError) {
+          console.error('Clipboard copy failed:', clipboardError);
+          alert('Failed to copy to clipboard. Please try again.');
+        }
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to share quote';
       setError(errorMessage);
       console.error('Share error:', err);
+      alert(`Error: ${errorMessage}`);
     } finally {
       setIsSharing(false);
     }
-  }, [quote, isSupported]);
+  }, [quote]);
 
   return {
     shareQuote,

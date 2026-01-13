@@ -242,7 +242,7 @@ export function HomePage() {
                     }}
                     className='px-8 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-semibold text-lg cursor-pointer'
                   >
-                    Fetch Next Quote
+                    Next Quote
                   </button>
                 </div>
               </div>
