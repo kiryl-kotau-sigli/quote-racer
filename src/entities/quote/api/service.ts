@@ -29,45 +29,23 @@ function parseDummyJsonResponse(data: unknown): Quote {
   };
 }
 
-function parseZenQuotesResponse(data: unknown): Quote {
-  if (!Array.isArray(data) || data.length === 0) {
-    throw new Error('Invalid response format');
-  }
-
-  const item = data[0] as Record<string, unknown>;
-  const quote = String(item.q ?? '');
-  const author = item.a ? String(item.a) : undefined;
-
-  if (!quote) {
-    throw new Error('Missing quote text');
-  }
-
-  return {
-    id: `zen-${Date.now()}-${Math.random()}`,
-    text: quote,
-    author,
-    source: 'api.viewbits.com',
-  };
-}
-
-function parseProgrammingQuotesResponse(data: unknown): Quote {
+function parseCatFactResponse(data: unknown): Quote {
   if (typeof data !== 'object' || data === null) {
     throw new Error('Invalid response format');
   }
 
   const obj = data as Record<string, unknown>;
-  const quote = String(obj.quote ?? '');
-  const author = obj.author ? String(obj.author) : undefined;
+  const fact = String(obj.fact ?? '');
 
-  if (!quote) {
-    throw new Error('Missing quote text');
+  if (!fact) {
+    throw new Error('Missing fact text');
   }
 
   return {
-    id: `prog-${Date.now()}-${Math.random()}`,
-    text: quote,
-    author,
-    source: 'programming-quotesapi.vercel.app',
+    id: `cat-${Date.now()}-${Math.random()}`,
+    text: fact,
+    author: 'Random Cat Facts',
+    source: 'catfact.ninja',
   };
 }
 
@@ -86,10 +64,8 @@ async function fetchQuoteFromEndpoint(
   let quote: Quote;
   if (endpoint.includes('dummyjson.com')) {
     quote = parseDummyJsonResponse(data);
-  } else if (endpoint.includes('viewbits.com')) {
-    quote = parseZenQuotesResponse(data);
-  } else if (endpoint.includes('programming-quotesapi.vercel.app')) {
-    quote = parseProgrammingQuotesResponse(data);
+  } else if (endpoint.includes('catfact.ninja')) {
+    quote = parseCatFactResponse(data);
   } else {
     throw new Error(`Unknown API endpoint: ${endpoint}`);
   }
@@ -112,8 +88,6 @@ export async function raceQuoteApis(
       .catch((error): QuoteApiResult => ({ success: false, error, source: endpoint })),
   );
 
-  const errors: QuoteApiError[] = [];
-
   try {
     const racePromises = promises.map((promise) =>
       promise.then(
@@ -123,10 +97,6 @@ export async function raceQuoteApis(
             controller.abort();
             return value.result;
           } else {
-            errors.push({
-              source: value.source,
-              error: value.error as Error,
-            });
             return Promise.reject(new Error('__REQUEST_FAILED__'));
           }
         },
@@ -140,6 +110,7 @@ export async function raceQuoteApis(
     return result;
   } catch (error) {
     const results = await Promise.allSettled(promises);
+    const errors: QuoteApiError[] = [];
 
     for (const result of results) {
       if (result.status === 'fulfilled' && result.value.success === true) {
@@ -162,11 +133,10 @@ export async function raceQuoteApis(
       }
     }
 
-    throw new Error(
-      `All quote APIs failed. Errors: ${errors
-        .map((e) => `${e.source}: ${e.error.message}`)
-        .join(', ')}`,
-    );
+    const errorMessages = errors
+      .map((e) => `  • ${e.source}: ${e.error.message}`)
+      .join('\n');
+    throw new Error(`All quote APIs failed.\nErrors:\n${errorMessages}`);
   } finally {
     clearTimeout(timeoutId);
   }

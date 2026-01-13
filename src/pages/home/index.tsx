@@ -24,7 +24,9 @@ export function HomePage() {
 
           {error && (
             <div className='text-center'>
-              <p className='text-red-600 text-lg mb-4'>Error: {error}</p>
+              <p className='text-red-600 text-lg mb-4 whitespace-pre-line text-left'>
+                {error}
+              </p>
               <button
                 onClick={fetchQuote}
                 className='px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
