@@ -16,6 +16,23 @@ This application implements a race condition pattern to fetch content from multi
 
 The application races all three APIs simultaneously and displays whichever responds first, providing a fast and reliable user experience.
 
+## Architecture
+
+This project follows the [Feature-Sliced Design (FSD)](https://feature-sliced.design/) methodology, which provides a structured approach to organizing frontend code. The project structure is organized into layers:
+
+- **`app/`** - Application initialization, providers, and global configuration
+- **`pages/`** - Page components that compose features and widgets
+- **`widgets/`** - Complex UI components that combine multiple features (e.g., `quote-display`, `quote-slideshow`)
+- **`features/`** - Business features with user interactions (e.g., `fetch-next-quote`, `rate-quote`, `share-quote`, `slideshow-control`)
+- **`entities/`** - Business entities with their data models and API logic (e.g., `quote`)
+- **`shared/`** - Reusable UI components, utilities, and infrastructure code
+
+This architecture promotes:
+- **Scalability** - Easy to add new features without affecting existing code
+- **Maintainability** - Clear separation of concerns and predictable code organization
+- **Reusability** - Shared components and utilities can be used across the application
+- **Testability** - Each layer can be tested independently
+
 ## Features
 
 ### User Stories
