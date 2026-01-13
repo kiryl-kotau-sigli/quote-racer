@@ -93,11 +93,23 @@ describe('raceQuoteApis', () => {
             50,
           );
         });
-      } else {
+      } else if (callCount === 2) {
         // Second call (catfact) - succeeds
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve(catFactResponse),
+        });
+      } else {
+        // Third call (randomuser) - will fail
+        return new Promise((resolve) => {
+          setTimeout(
+            () =>
+              resolve({
+                ok: false,
+                status: 500,
+              }),
+            50,
+          );
         });
       }
     });
@@ -108,6 +120,55 @@ describe('raceQuoteApis', () => {
     expect(result.quote.author).toBe('Random Cat Facts');
     expect(result.quote.id).toContain('cat-');
     expect(result.source).toContain('catfact.ninja');
+  });
+
+  it('should parse randomuser.me response correctly', async () => {
+    const randomUserResponse = {
+      results: [
+        {
+          name: {
+            title: 'Mrs',
+            first: 'Silvija',
+            last: 'Šotra',
+          },
+          location: {
+            city: 'Bogatić',
+            country: 'Serbia',
+          },
+        },
+      ],
+    };
+
+    let callCount = 0;
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      callCount++;
+      if (callCount <= 2) {
+        // First two calls - will fail
+        return new Promise((resolve) => {
+          setTimeout(
+            () =>
+              resolve({
+                ok: false,
+                status: 500,
+              }),
+            50,
+          );
+        });
+      } else {
+        // Third call (randomuser) - succeeds
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(randomUserResponse),
+        });
+      }
+    });
+
+    const result = await raceQuoteApis();
+
+    expect(result.quote.text).toBe('Mrs Silvija Šotra');
+    expect(result.quote.author).toBe('Bogatić Serbia');
+    expect(result.quote.id).toContain('user-');
+    expect(result.source).toContain('randomuser.me');
   });
 
   it('should throw error when all APIs fail', async () => {

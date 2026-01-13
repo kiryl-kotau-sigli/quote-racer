@@ -49,6 +49,43 @@ function parseCatFactResponse(data: unknown): Quote {
   };
 }
 
+function parseRandomUserResponse(data: unknown): Quote {
+  if (typeof data !== 'object' || data === null) {
+    throw new Error('Invalid response format');
+  }
+
+  const obj = data as Record<string, unknown>;
+  const results = obj.results;
+
+  if (!Array.isArray(results) || results.length === 0) {
+    throw new Error('Invalid response format');
+  }
+
+  const user = results[0] as Record<string, unknown>;
+  const name = user.name as Record<string, unknown>;
+  const location = user.location as Record<string, unknown>;
+
+  const title = String(name.title ?? '');
+  const first = String(name.first ?? '');
+  const last = String(name.last ?? '');
+  const city = String(location.city ?? '');
+  const country = String(location.country ?? '');
+
+  const quoteText = `${title} ${first} ${last}`.trim();
+  const authorText = `${city} ${country}`.trim();
+
+  if (!quoteText) {
+    throw new Error('Missing name information');
+  }
+
+  return {
+    id: `user-${Date.now()}-${Math.random()}`,
+    text: quoteText,
+    author: authorText || undefined,
+    source: 'randomuser.me',
+  };
+}
+
 async function fetchQuoteFromEndpoint(
   endpoint: string,
   signal: AbortSignal,
@@ -66,6 +103,8 @@ async function fetchQuoteFromEndpoint(
     quote = parseDummyJsonResponse(data);
   } else if (endpoint.includes('catfact.ninja')) {
     quote = parseCatFactResponse(data);
+  } else if (endpoint.includes('randomuser.me')) {
+    quote = parseRandomUserResponse(data);
   } else {
     throw new Error(`Unknown API endpoint: ${endpoint}`);
   }
