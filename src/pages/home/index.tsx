@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { useFetchQuote } from '@/features/fetch-next-quote';
 import { Loader } from '@/shared/ui/loader';
 
@@ -35,6 +35,28 @@ export function HomePage() {
   useEffect(() => {
     fetchQuote();
   }, [fetchQuote]);
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      if ((event.key === 'Enter' || event.key === ' ') && !loading) {
+        event.preventDefault();
+        fetchQuote();
+      }
+    },
+    [fetchQuote, loading],
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8'>
