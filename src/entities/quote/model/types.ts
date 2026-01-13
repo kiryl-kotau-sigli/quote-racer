@@ -4,8 +4,3 @@ export interface Quote {
   author?: string;
   source?: string;
 }
-
-export interface QuoteRating {
-  quoteId: string;
-  rating: number;
-}
