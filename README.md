@@ -28,6 +28,8 @@ The application races all three APIs simultaneously and displays whichever respo
 
 - **Slideshow of random quotes** - Users can enable an automatic slideshow feature that displays random quotes at configurable intervals. This can be configured via the Settings button, allowing users to customize the interval between quote changes.
 
+- **Keyboard navigation** - Users can navigate to the next quote by pressing Enter or Space, providing quick and convenient access to new quotes without using the mouse.
+
 ### Testing
 
 The application includes comprehensive unit tests for important functionality, covering:
