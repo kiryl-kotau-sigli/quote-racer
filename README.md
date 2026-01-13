@@ -2,6 +2,8 @@
 
 A React application that fetches quotes from multiple APIs, racing for the fastest response.
 
+**Live Demo**: [https://kiryl-kotau-sigli.github.io/quote-racer/](https://kiryl-kotau-sigli.github.io/quote-racer/)
+
 ## About
 
 The main screen of the application displays a random quote retrieved from a web API and provides a button to display the next random quote. The application is able to handle a lack of network connectivity gracefully by showing cached quotes and hardcoded fallback quotes.
@@ -33,6 +35,7 @@ The application races all three APIs simultaneously and displays whichever respo
 ### Testing
 
 The application includes comprehensive unit tests for important functionality, covering:
+
 - Feature hooks (quote fetching, rating, sharing, slideshow control)
 - Widgets (quote display, slideshow settings)
 - Shared utilities (formatting, storage functions)
@@ -110,5 +113,24 @@ yarn lint
 - React
 - TypeScript
 - Vite
-- Vitest (for testing)
-- React Testing Library (for component testing)
+- Tailwind CSS
+- Vitest
+- React Testing Library
+
+## CI/CD
+
+The project uses GitHub Actions for continuous integration and deployment. The workflow is configured to:
+
+- **Automatically build and test** the application on every push to the `main` branch
+- **Run all tests** to ensure code quality before deployment
+- **Deploy to GitHub Pages** automatically after successful build and tests
+
+The deployment workflow:
+
+1. Checks out the code
+2. Sets up Node.js and installs dependencies using yarn
+3. Runs the test suite
+4. Builds the production bundle
+5. Deploys to GitHub Pages
+
+The application is available at [https://kiryl-kotau-sigli.github.io/quote-racer/](https://kiryl-kotau-sigli.github.io/quote-racer/).
