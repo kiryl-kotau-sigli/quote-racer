@@ -19,7 +19,9 @@ export function saveQuoteRating(quoteId: string, rating: number): void {
 
     ratings[quoteId] = rating;
     localStorage.setItem(RATINGS_KEY, JSON.stringify(ratings));
-  } catch {}
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 export function getAllRatings(): Record<string, number> {
@@ -41,5 +43,7 @@ export function removeQuoteRating(quoteId: string): void {
     const ratings: Record<string, number> = JSON.parse(cached);
     delete ratings[quoteId];
     localStorage.setItem(RATINGS_KEY, JSON.stringify(ratings));
-  } catch {}
+  } catch {
+    // Ignore storage errors
+  }
 }

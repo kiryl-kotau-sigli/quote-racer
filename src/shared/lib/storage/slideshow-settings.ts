@@ -28,5 +28,7 @@ export function getSlideshowSettings(): SlideshowSettings {
 export function saveSlideshowSettings(settings: SlideshowSettings): void {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  } catch {}
+  } catch {
+    // Ignore storage errors
+  }
 }

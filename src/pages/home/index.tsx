@@ -39,12 +39,6 @@ export function HomePage() {
     fetchQuote();
   }, [fetchQuote]);
 
-  useEffect(() => {
-    if (quote) {
-      setIsAnimating(false);
-    }
-  }, [quote]);
-
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;

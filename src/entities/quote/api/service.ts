@@ -150,7 +150,7 @@ export async function raceQuoteApis(
 
     const result = await Promise.race(racePromises);
     return result;
-  } catch (error) {
+  } catch {
     const results = await Promise.allSettled(promises);
     const errors: QuoteApiError[] = [];
 

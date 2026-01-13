@@ -50,7 +50,7 @@ describe('useShareQuote', () => {
   it('should detect lack of Web Share API support', () => {
     // Remove share from navigator
     const originalShare = globalThis.navigator.share;
-    delete (globalThis.navigator as any).share;
+    delete (globalThis.navigator as unknown as Record<string, unknown>).share;
 
     const { result } = renderHook(() => useShareQuote(mockQuote));
 
@@ -122,7 +122,7 @@ describe('useShareQuote', () => {
   });
 
   it('should use clipboard when Web Share API is not available', async () => {
-    delete (globalThis.navigator as any).share;
+    delete (globalThis.navigator as unknown as Record<string, unknown>).share;
 
     const { result } = renderHook(() => useShareQuote(mockQuote));
 
@@ -142,7 +142,7 @@ describe('useShareQuote', () => {
       text: 'Quote without author',
     };
 
-    delete (globalThis.navigator as any).share;
+    delete (globalThis.navigator as unknown as Record<string, unknown>).share;
 
     const { result } = renderHook(() => useShareQuote(quoteWithoutAuthor));
 
@@ -194,7 +194,7 @@ describe('useShareQuote', () => {
   });
 
   it('should handle clipboard errors gracefully', async () => {
-    delete (globalThis.navigator as any).share;
+    delete (globalThis.navigator as unknown as Record<string, unknown>).share;
     const clipboardError = new Error('Clipboard failed');
     globalThis.navigator.clipboard.writeText = vi.fn().mockRejectedValue(clipboardError);
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

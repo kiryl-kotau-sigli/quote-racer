@@ -22,6 +22,7 @@ export function getCachedQuotes(): Quote[] {
       saveCachedQuotes(validQuotes);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return validQuotes.map(({ cachedAt, ...quote }) => quote);
   } catch {
     return [];
@@ -44,13 +45,17 @@ export function saveQuoteToCache(quote: Quote): void {
     );
 
     saveCachedQuotes(updated);
-  } catch {}
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 function saveCachedQuotes(quotes: CachedQuote[]): void {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify(quotes));
-  } catch {}
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 export function getRandomCachedQuote(): Quote | null {
