@@ -2,6 +2,8 @@ import { QUOTE_API_ENDPOINTS } from './config';
 import type { QuoteApiResponse, QuoteApiError } from './types';
 import type { Quote } from '../model/types';
 import { API_CONFIG } from '@/shared/api/config';
+import { getRandomFallbackQuote } from '@/shared/lib/constants';
+import { getRandomCachedQuote, saveQuoteToCache } from '@/shared/lib/storage/quote-cache';
 
 type QuoteApiResult =
   | { success: true; result: QuoteApiResponse; source: string }
@@ -134,6 +136,7 @@ export async function raceQuoteApis(
           if (value.success === true) {
             clearTimeout(timeoutId);
             controller.abort();
+            saveQuoteToCache(value.result.quote);
             return value.result;
           } else {
             return Promise.reject(new Error('__REQUEST_FAILED__'));
@@ -154,7 +157,9 @@ export async function raceQuoteApis(
     for (const result of results) {
       if (result.status === 'fulfilled' && result.value.success === true) {
         clearTimeout(timeoutId);
-        return result.value.result;
+        const apiResult = result.value.result;
+        saveQuoteToCache(apiResult.quote);
+        return apiResult;
       }
     }
 
@@ -172,10 +177,21 @@ export async function raceQuoteApis(
       }
     }
 
-    const errorMessages = errors
-      .map((e) => `  • ${e.source}: ${e.error.message}`)
-      .join('\n');
-    throw new Error(`All quote APIs failed.\nErrors:\n${errorMessages}`);
+    const cachedQuote = getRandomCachedQuote();
+    if (cachedQuote) {
+      clearTimeout(timeoutId);
+      return {
+        quote: cachedQuote,
+        source: 'cache',
+      };
+    }
+
+    const fallbackQuote = getRandomFallbackQuote();
+    clearTimeout(timeoutId);
+    return {
+      quote: fallbackQuote,
+      source: 'offline',
+    };
   } finally {
     clearTimeout(timeoutId);
   }

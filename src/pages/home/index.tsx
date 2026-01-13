@@ -1,9 +1,36 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFetchQuote } from '@/features/fetch-next-quote';
 import { Loader } from '@/shared/ui/loader';
 
+function formatSourceLabel(source?: string | null): string | null {
+  if (!source) {
+    return null;
+  }
+
+  if (source === 'cache') {
+    return 'Cached result';
+  }
+
+  if (source === 'offline') {
+    return 'Offline fallback';
+  }
+
+  if (source.startsWith('http://') || source.startsWith('https://')) {
+    try {
+      const url = new URL(source);
+      return url.hostname;
+    } catch {
+      return source;
+    }
+  }
+
+  return source;
+}
+
 export function HomePage() {
   const { quote, loading, error, source, fetchQuote } = useFetchQuote();
+
+  const sourceLabel = useMemo(() => formatSourceLabel(source), [source]);
 
   useEffect(() => {
     fetchQuote();
@@ -24,9 +51,7 @@ export function HomePage() {
 
           {error && (
             <div className='text-center'>
-              <p className='text-red-600 text-lg mb-4 whitespace-pre-line text-left'>
-                {error}
-              </p>
+              <p className='text-red-600 text-lg mb-4 whitespace-pre-line text-left'>{error}</p>
               <button
                 onClick={fetchQuote}
                 className='px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
@@ -46,10 +71,8 @@ export function HomePage() {
                   &mdash; {quote.author}
                 </p>
               )}
-              {source && (
-                <p className='text-sm text-gray-400 text-center mt-4'>
-                  Source: {new URL(source).hostname}
-                </p>
+              {sourceLabel && (
+                <p className='text-sm text-gray-400 text-center mt-4'>Source: {sourceLabel}</p>
               )}
               <div className='flex justify-center mt-8'>
                 <button
