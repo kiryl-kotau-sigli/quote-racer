@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { useFetchQuote } from '@/features/fetch-next-quote';
 import { useRateQuote } from '@/features/rate-quote';
+import { useShareQuote } from '@/features/share-quote';
 import { Loader } from '@/shared/ui/loader';
 import { StarRating } from '@/shared/ui/star-rating';
+import { ShareButton } from '@/shared/ui/share-button';
 import {
   getSlideshowSettings,
   saveSlideshowSettings,
@@ -37,6 +39,7 @@ function formatSourceLabel(source?: string | null): string | null {
 export function HomePage() {
   const { quote, loading, error, source, fetchQuote } = useFetchQuote();
   const { currentRating, rateQuote } = useRateQuote(quote?.id ?? null);
+  const { shareQuote, isSharing } = useShareQuote(quote);
   const [isAnimating, setIsAnimating] = useState(false);
   const [slideshowSettings, setSlideshowSettings] = useState<SlideshowSettings>(() =>
     getSlideshowSettings(),
@@ -223,22 +226,25 @@ export function HomePage() {
                   <p className='text-sm text-gray-600 font-medium'>Rate this quote:</p>
                   <StarRating rating={currentRating} onRate={rateQuote} size='lg' />
                 </div>
-                <button
-                  onClick={() => {
-                    if (intervalRef.current) {
-                      clearInterval(intervalRef.current);
-                      intervalRef.current = null;
-                    }
-                    setIsAnimating(true);
-                    setTimeout(() => {
-                      fetchQuote();
-                      setIsAnimating(false);
-                    }, 300);
-                  }}
-                  className='px-8 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-semibold text-lg cursor-pointer'
-                >
-                  Fetch Next Quote
-                </button>
+                <div className='flex flex-col items-center gap-3'>
+                  <ShareButton onShare={shareQuote} isSharing={isSharing} />
+                  <button
+                    onClick={() => {
+                      if (intervalRef.current) {
+                        clearInterval(intervalRef.current);
+                        intervalRef.current = null;
+                      }
+                      setIsAnimating(true);
+                      setTimeout(() => {
+                        fetchQuote();
+                        setIsAnimating(false);
+                      }, 300);
+                    }}
+                    className='px-8 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-semibold text-lg cursor-pointer'
+                  >
+                    Fetch Next Quote
+                  </button>
+                </div>
               </div>
             </div>
           )}
