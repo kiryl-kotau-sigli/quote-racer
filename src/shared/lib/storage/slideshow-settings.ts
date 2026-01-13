@@ -6,8 +6,8 @@ export interface SlideshowSettings {
 }
 
 const DEFAULT_SETTINGS: SlideshowSettings = {
-  enabled: true,
-  intervalSeconds: 7,
+  enabled: false,
+  intervalSeconds: 10,
 };
 
 export function getSlideshowSettings(): SlideshowSettings {
