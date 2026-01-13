@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { useFetchQuote } from '@/features/fetch-next-quote';
+import { useRateQuote } from '@/features/rate-quote';
 import { Loader } from '@/shared/ui/loader';
+import { StarRating } from '@/shared/ui/star-rating';
 import {
   getSlideshowSettings,
   saveSlideshowSettings,
@@ -34,6 +36,7 @@ function formatSourceLabel(source?: string | null): string | null {
 
 export function HomePage() {
   const { quote, loading, error, source, fetchQuote } = useFetchQuote();
+  const { currentRating, rateQuote } = useRateQuote(quote?.id ?? null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [slideshowSettings, setSlideshowSettings] = useState<SlideshowSettings>(() =>
     getSlideshowSettings(),
@@ -215,7 +218,11 @@ export function HomePage() {
               {sourceLabel && (
                 <p className='text-sm text-gray-400 text-center mt-4'>Source: {sourceLabel}</p>
               )}
-              <div className='flex justify-center mt-8'>
+              <div className='flex flex-col items-center gap-4 mt-6'>
+                <div className='flex flex-col items-center gap-2'>
+                  <p className='text-sm text-gray-600 font-medium'>Rate this quote:</p>
+                  <StarRating rating={currentRating} onRate={rateQuote} size='lg' />
+                </div>
                 <button
                   onClick={() => {
                     if (intervalRef.current) {
