@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, useState, useRef } from 'react';
 import { useFetchQuote } from '@/features/fetch-next-quote';
 import { Loader } from '@/shared/ui/loader';
 
@@ -29,12 +29,42 @@ function formatSourceLabel(source?: string | null): string | null {
 
 export function HomePage() {
   const { quote, loading, error, source, fetchQuote } = useFetchQuote();
+  const [isAnimating, setIsAnimating] = useState(false);
+  const intervalRef = useRef<number | null>(null);
 
   const sourceLabel = useMemo(() => formatSourceLabel(source), [source]);
 
   useEffect(() => {
     fetchQuote();
   }, [fetchQuote]);
+
+  useEffect(() => {
+    if (quote && !loading && !error) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
+      intervalRef.current = setInterval(() => {
+        setIsAnimating(true);
+        setTimeout(() => {
+          fetchQuote();
+          setIsAnimating(false);
+        }, 300);
+      }, 7000);
+
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
+    }
+  }, [quote, loading, error, fetchQuote]);
+
+  useEffect(() => {
+    if (quote) {
+      setIsAnimating(false);
+    }
+  }, [quote]);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -45,7 +75,15 @@ export function HomePage() {
 
       if ((event.key === 'Enter' || event.key === ' ') && !loading) {
         event.preventDefault();
-        fetchQuote();
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+        setIsAnimating(true);
+        setTimeout(() => {
+          fetchQuote();
+          setIsAnimating(false);
+        }, 300);
       }
     },
     [fetchQuote, loading],
@@ -84,7 +122,11 @@ export function HomePage() {
           )}
 
           {quote && !loading && (
-            <div className='space-y-6'>
+            <div
+              className={`space-y-6 transition-opacity duration-300 ${
+                isAnimating ? 'opacity-0' : 'opacity-100'
+              }`}
+            >
               <blockquote className='text-2xl text-gray-800 italic text-center leading-relaxed'>
                 &ldquo;{quote.text}&rdquo;
               </blockquote>
@@ -98,7 +140,17 @@ export function HomePage() {
               )}
               <div className='flex justify-center mt-8'>
                 <button
-                  onClick={fetchQuote}
+                  onClick={() => {
+                    if (intervalRef.current) {
+                      clearInterval(intervalRef.current);
+                      intervalRef.current = null;
+                    }
+                    setIsAnimating(true);
+                    setTimeout(() => {
+                      fetchQuote();
+                      setIsAnimating(false);
+                    }, 300);
+                  }}
                   className='px-8 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors font-semibold text-lg'
                 >
                   Fetch Next Quote
