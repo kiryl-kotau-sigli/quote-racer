@@ -35,6 +35,74 @@ The application includes comprehensive unit tests for important functionality, c
 - Widgets (quote display, slideshow settings)
 - Shared utilities (formatting, storage functions)
 
+## Getting Started
+
+### Prerequisites
+
+- yarn (or npm)
+
+### Installation
+
+```bash
+yarn install
+```
+
+### Development
+
+To start the development server:
+
+```bash
+yarn dev
+```
+
+The application will be available at `http://localhost:5173` (or the port shown in the terminal).
+
+### Testing
+
+To run all tests:
+
+```bash
+yarn test
+```
+
+To run tests once (without watch mode):
+
+```bash
+yarn test --run
+```
+
+To run tests with UI:
+
+```bash
+yarn test:ui
+```
+
+### Building
+
+To build the application for production:
+
+```bash
+yarn build
+```
+
+The built files will be in the `dist` directory.
+
+### Preview
+
+To preview the production build locally:
+
+```bash
+yarn preview
+```
+
+### Linting
+
+To check code quality:
+
+```bash
+yarn lint
+```
+
 ## Tech Stack
 
 - React
