@@ -4,6 +4,8 @@ A React application that fetches quotes from multiple APIs, racing for the faste
 
 ## About
 
+The main screen of the application displays a random quote retrieved from a web API and provides a button to display the next random quote. The application is able to handle a lack of network connectivity gracefully by showing cached quotes and hardcoded fallback quotes.
+
 This application implements a race condition pattern to fetch content from multiple APIs concurrently and displays the first successful response. Due to limitations with available quote APIs (some require API keys, others have CORS restrictions, or are simply unavailable), the application uses a combination of different content sources:
 
 - **Quote API**: [dummyjson.com](https://dummyjson.com/quotes/random) - Provides random quotes with authors
@@ -12,8 +14,31 @@ This application implements a race condition pattern to fetch content from multi
 
 The application races all three APIs simultaneously and displays whichever responds first, providing a fast and reliable user experience.
 
+## Features
+
+### User Stories
+
+- **Fetch quotes from multiple APIs, racing for the fastest response** - The application concurrently requests quotes from multiple sources and displays the first successful response, ensuring optimal performance.
+
+- **Handle offline gracefully** - When network connectivity is unavailable, the application falls back on a set of cached quotes and local hardcoded quotes, ensuring users always have content to view.
+
+- **Rate quotes locally** - Users can rate quotes using a star rating system. Ratings are stored locally in the browser without requiring a backend, allowing for a personalized experience.
+
+- **Native sharing for quotes** - The application supports native sharing functionality when available. If native sharing is not supported, the quote is automatically copied to the clipboard as a fallback, ensuring users can always share quotes easily.
+
+- **Slideshow of random quotes** - Users can enable an automatic slideshow feature that displays random quotes at configurable intervals. This can be configured via the Settings button, allowing users to customize the interval between quote changes.
+
+### Testing
+
+The application includes comprehensive unit tests for important functionality, covering:
+- Feature hooks (quote fetching, rating, sharing, slideshow control)
+- Widgets (quote display, slideshow settings)
+- Shared utilities (formatting, storage functions)
+
 ## Tech Stack
 
 - React
 - TypeScript
 - Vite
+- Vitest (for testing)
+- React Testing Library (for component testing)
