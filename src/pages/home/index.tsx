@@ -15,17 +15,12 @@ export function HomePage() {
   const { quote, loading, error, source, fetchQuote } = useFetchQuote();
   const { currentRating, rateQuote } = useRateQuote(quote?.id ?? null);
   const { shareQuote, isSharing } = useShareQuote(quote);
-  const [isAnimating, setIsAnimating] = useState(false);
   const [slideshowSettings, setSlideshowSettings] = useState<SlideshowSettings>(() =>
     getSlideshowSettings(),
   );
 
   const handleNextQuote = useCallback(() => {
-    setIsAnimating(true);
-    setTimeout(() => {
-      fetchQuote();
-      setIsAnimating(false);
-    }, 300);
+    fetchQuote({ keepPrevious: true });
   }, [fetchQuote]);
 
   const { stopAnimation } = useSlideshowControl({
@@ -63,13 +58,13 @@ export function HomePage() {
   }, [handleKeyDown]);
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-8'>
+    <div className='min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 p-4 sm:p-8'>
       <div className='max-w-4xl mx-auto'>
         <QuoteSlideshow settings={slideshowSettings} onSettingsChange={setSlideshowSettings} />
 
-        <div className='bg-white rounded-lg shadow-xl p-4 sm:p-6 md:p-8 min-h-[200px] sm:min-h-[300px] flex flex-col justify-center'>
-          {loading && (
-            <div className='flex flex-col items-center justify-center py-4 sm:py-8'>
+        <div className='bg-white rounded-lg shadow-xl p-4 sm:p-6 md:p-8 min-h-50 sm:min-h-80 flex flex-col justify-start pt-6'>
+          {loading && !quote && (
+            <div className='flex flex-col items-center justify-center min-h-60'>
               <Loader />
               <p className='mt-3 sm:mt-4 text-sm sm:text-base text-gray-600'>
                 Racing APIs for the fastest quote...
@@ -77,13 +72,13 @@ export function HomePage() {
             </div>
           )}
 
-          {error && (
-            <div className='text-center py-4 sm:py-8'>
+          {error && !quote && (
+            <div className='text-center py-4 sm:py-8 min-h-50 flex flex-col items-center justify-center'>
               <p className='text-red-600 text-sm sm:text-lg mb-3 sm:mb-4 whitespace-pre-line text-left'>
                 {error}
               </p>
               <button
-                onClick={fetchQuote}
+                onClick={() => fetchQuote()}
                 className='px-4 sm:px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm sm:text-base'
               >
                 Try Again
@@ -91,13 +86,14 @@ export function HomePage() {
             </div>
           )}
 
-          {quote && !loading && (
+          {quote && (
             <QuoteDisplay
+              key={quote.id}
               quote={quote}
               source={source}
               currentRating={currentRating}
-              isAnimating={isAnimating}
               isSharing={isSharing}
+              isLoadingNext={loading}
               onRate={rateQuote}
               onShare={shareQuote}
               onNext={() => {

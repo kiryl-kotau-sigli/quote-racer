@@ -8,7 +8,7 @@ interface UseFetchQuoteResult {
   loading: boolean;
   error: string | null;
   source: string | null;
-  fetchQuote: () => Promise<void>;
+  fetchQuote: (options?: { keepPrevious?: boolean }) => Promise<void>;
 }
 
 export function useFetchQuote(): UseFetchQuoteResult {
@@ -17,19 +17,26 @@ export function useFetchQuote(): UseFetchQuoteResult {
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<string | null>(null);
 
-  const fetchQuote = useCallback(async () => {
+  const fetchQuote = useCallback(async (options?: { keepPrevious?: boolean }) => {
+    const keepPrevious = options?.keepPrevious ?? false;
     setLoading(true);
     setError(null);
-    setQuote(null);
-    setSource(null);
+    if (!keepPrevious) {
+      setQuote(null);
+      setSource(null);
+    }
 
     try {
       const result: QuoteApiResponse = await raceQuoteApis();
       setQuote(result.quote);
       setSource(result.source);
+      setError(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch quote';
       setError(errorMessage);
+      if (!keepPrevious) {
+        setQuote(null);
+      }
     } finally {
       setLoading(false);
     }

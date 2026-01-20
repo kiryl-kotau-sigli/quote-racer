@@ -32,8 +32,8 @@ describe('QuoteDisplay', () => {
     quote: mockQuote,
     source: 'https://api.example.com',
     currentRating: null,
-    isAnimating: false,
     isSharing: false,
+    isLoadingNext: false,
     onRate: vi.fn(),
     onShare: vi.fn().mockResolvedValue(undefined),
     onNext: vi.fn(),
@@ -51,7 +51,7 @@ describe('QuoteDisplay', () => {
     expect(screen.getByText(/Test Author/)).toBeInTheDocument();
   });
 
-  it('should not render author when not provided', () => {
+  it('should not show author dash when author not provided', () => {
     const quoteWithoutAuthor: Quote = {
       id: '2',
       text: 'Quote without author',
@@ -74,18 +74,20 @@ describe('QuoteDisplay', () => {
     expect(screen.queryByText(/Source:/)).not.toBeInTheDocument();
   });
 
-  it('should apply opacity-0 class when animating', () => {
-    const { container } = render(<QuoteDisplay {...defaultProps} isAnimating={true} />);
+  it('should show Loading and disable Next button when isLoadingNext', () => {
+    render(<QuoteDisplay {...defaultProps} isLoadingNext={true} />);
 
-    const displayDiv = container.querySelector('.opacity-0');
-    expect(displayDiv).toBeInTheDocument();
+    const nextButton = screen.getByRole('button', { name: /Loading/ });
+    expect(nextButton).toHaveTextContent('Loading...');
+    expect(nextButton).toBeDisabled();
   });
 
-  it('should apply opacity-100 class when not animating', () => {
-    const { container } = render(<QuoteDisplay {...defaultProps} isAnimating={false} />);
+  it('should show Next Quote and enable button when not loading next', () => {
+    render(<QuoteDisplay {...defaultProps} isLoadingNext={false} />);
 
-    const displayDiv = container.querySelector('.opacity-100');
-    expect(displayDiv).toBeInTheDocument();
+    const nextButton = screen.getByRole('button', { name: /Next Quote/ });
+    expect(nextButton).toHaveTextContent('Next Quote');
+    expect(nextButton).not.toBeDisabled();
   });
 
   it('should call onRate when rating is selected', async () => {
