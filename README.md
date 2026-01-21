@@ -131,6 +131,7 @@ yarn lint
 - TypeScript
 - Vite
 - Tailwind CSS
+- Zod
 - Vitest
 - React Testing Library
 
