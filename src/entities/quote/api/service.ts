@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { QUOTE_API_ENDPOINTS } from './config';
 import type { QuoteApiResponse, QuoteApiError } from './types';
 import type { Quote } from '../model/types';
@@ -9,72 +10,67 @@ type QuoteApiResult =
   | { success: true; result: QuoteApiResponse; source: string }
   | { success: false; error: Error; source: string };
 
+const DummyJsonSchema = z.object({
+  id: z
+    .unknown()
+    .optional()
+    .transform((v) => String(v ?? '')),
+  quote: z.string().min(1, 'Missing quote text'),
+  author: z
+    .unknown()
+    .optional()
+    .transform((a) => (a == null ? undefined : String(a))),
+});
+
+const CatFactSchema = z.object({
+  fact: z.string().min(1, 'Missing fact text'),
+});
+
+const RandomUserResultSchema = z.object({
+  name: z.object({
+    title: z.string().optional().default(''),
+    first: z.string().optional().default(''),
+    last: z.string().optional().default(''),
+  }),
+  location: z
+    .object({
+      city: z.string().optional().default(''),
+      country: z.string().optional().default(''),
+    })
+    .optional()
+    .default({ city: '', country: '' }),
+});
+
+const RandomUserSchema = z.object({
+  results: z.array(RandomUserResultSchema).min(1, 'Invalid response format'),
+});
+
 function parseDummyJsonResponse(data: unknown): Quote {
-  if (typeof data !== 'object' || data === null) {
-    throw new Error('Invalid response format');
-  }
-
-  const obj = data as Record<string, unknown>;
-  const id = String(obj.id ?? '');
-  const quote = String(obj.quote ?? '');
-  const author = obj.author ? String(obj.author) : undefined;
-
-  if (!quote) {
-    throw new Error('Missing quote text');
-  }
-
+  const parsed = DummyJsonSchema.parse(data);
   return {
-    id,
-    text: quote,
-    author,
+    id: parsed.id,
+    text: parsed.quote,
+    author: parsed.author,
     source: 'dummyjson.com',
   };
 }
 
 function parseCatFactResponse(data: unknown): Quote {
-  if (typeof data !== 'object' || data === null) {
-    throw new Error('Invalid response format');
-  }
-
-  const obj = data as Record<string, unknown>;
-  const fact = String(obj.fact ?? '');
-
-  if (!fact) {
-    throw new Error('Missing fact text');
-  }
-
+  const parsed = CatFactSchema.parse(data);
   return {
     id: `cat-${Date.now()}-${Math.random()}`,
-    text: fact,
+    text: parsed.fact,
     author: 'Random Cat Facts',
     source: 'catfact.ninja',
   };
 }
 
 function parseRandomUserResponse(data: unknown): Quote {
-  if (typeof data !== 'object' || data === null) {
-    throw new Error('Invalid response format');
-  }
-
-  const obj = data as Record<string, unknown>;
-  const results = obj.results;
-
-  if (!Array.isArray(results) || results.length === 0) {
-    throw new Error('Invalid response format');
-  }
-
-  const user = results[0] as Record<string, unknown>;
-  const name = user.name as Record<string, unknown>;
-  const location = user.location as Record<string, unknown>;
-
-  const title = String(name.title ?? '');
-  const first = String(name.first ?? '');
-  const last = String(name.last ?? '');
-  const city = String(location.city ?? '');
-  const country = String(location.country ?? '');
-
-  const quoteText = `${title} ${first} ${last}`.trim();
-  const authorText = `${city} ${country}`.trim();
+  const { results } = RandomUserSchema.parse(data);
+  const user = results[0];
+  const { name, location } = user;
+  const quoteText = `${name.title} ${name.first} ${name.last}`.trim();
+  const authorText = `${location.city} ${location.country}`.trim();
 
   if (!quoteText) {
     throw new Error('Missing name information');
