@@ -12,9 +12,7 @@ describe('useShareQuote', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock navigator.share
     globalThis.navigator.share = vi.fn();
-    // Mock navigator.clipboard
     Object.defineProperty(globalThis.navigator, 'clipboard', {
       value: {
         writeText: vi.fn().mockResolvedValue(undefined),
@@ -22,9 +20,7 @@ describe('useShareQuote', () => {
       writable: true,
       configurable: true,
     });
-    // Mock alert
     globalThis.alert = vi.fn();
-    // Mock document.execCommand (deprecated but used as fallback in implementation)
     document.execCommand = vi.fn().mockReturnValue(true);
   });
 
@@ -43,12 +39,10 @@ describe('useShareQuote', () => {
   it('should detect Web Share API support', () => {
     const { result } = renderHook(() => useShareQuote(mockQuote));
 
-    // Should be true if navigator.share exists
     expect(result.current.isSupported).toBe(true);
   });
 
   it('should detect lack of Web Share API support', () => {
-    // Remove share from navigator
     const originalShare = globalThis.navigator.share;
     delete (globalThis.navigator as unknown as Record<string, unknown>).share;
 
@@ -56,7 +50,6 @@ describe('useShareQuote', () => {
 
     expect(result.current.isSupported).toBe(false);
 
-    // Restore
     globalThis.navigator.share = originalShare;
   });
 

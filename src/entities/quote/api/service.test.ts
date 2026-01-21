@@ -1,10 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { raceQuoteApis } from './service';
 
-// Mock fetch globally
 globalThis.fetch = vi.fn() as typeof fetch;
 
-// Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
 
@@ -50,7 +48,6 @@ describe('raceQuoteApis', () => {
       length: 51,
     };
 
-    // Mock fetch to return dummyjson faster
     (globalThis.fetch as ReturnType<typeof vi.fn>)
       .mockImplementationOnce(() =>
         Promise.resolve({
@@ -196,58 +193,40 @@ describe('raceQuoteApis', () => {
     expect(result.source).toContain('randomuser.me');
   });
 
-  it('should return fallback quote when all APIs fail', async () => {
+  it('should throw error when all APIs fail', async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'));
 
-    const result = await raceQuoteApis();
-
-    expect(result.quote).toBeDefined();
-    expect(result.quote.text).toBeTruthy();
-    expect(result.source).toBe('offline');
-    expect(result.quote.source).toBe('offline');
+    await expect(raceQuoteApis()).rejects.toThrow('All API requests failed');
   });
 
-  it('should return fallback quote when API returns invalid response format', async () => {
+  it('should throw error when API returns invalid response format', async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ invalid: 'data' }),
     });
 
-    const result = await raceQuoteApis();
-
-    expect(result.quote).toBeDefined();
-    expect(result.quote.text).toBeTruthy();
-    expect(result.source).toBe('offline');
+    await expect(raceQuoteApis()).rejects.toThrow('All API requests failed');
   });
 
-  it('should return fallback quote when API returns empty quote text', async () => {
+  it('should throw error when API returns empty quote text', async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ id: 1, quote: '', author: 'Test' }),
     });
 
-    const result = await raceQuoteApis();
-
-    expect(result.quote).toBeDefined();
-    expect(result.quote.text).toBeTruthy();
-    expect(result.source).toBe('offline');
+    await expect(raceQuoteApis()).rejects.toThrow('All API requests failed');
   });
 
-  it('should return fallback quote when all APIs return HTTP errors', async () => {
+  it('should throw error when all APIs return HTTP errors', async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: false,
       status: 500,
     });
 
-    const result = await raceQuoteApis();
-
-    expect(result.quote).toBeDefined();
-    expect(result.quote.text).toBeTruthy();
-    expect(result.source).toBe('offline');
+    await expect(raceQuoteApis()).rejects.toThrow('All API requests failed');
   });
 
-  it('should return fallback quote when timeout occurs', async () => {
-    // Mock fetch to delay longer than timeout and respect abort signal
+  it('should throw error when timeout occurs', async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockImplementation(
       (_url: string, options?: { signal?: AbortSignal }) => {
         return new Promise((resolve, reject) => {
@@ -267,9 +246,8 @@ describe('raceQuoteApis', () => {
                   }),
               });
             }
-          }, 200); // 200ms delay
+          }, 200);
 
-          // Listen for abort
           if (options?.signal) {
             options.signal.addEventListener('abort', () => {
               clearTimeout(timeoutId);
@@ -282,32 +260,6 @@ describe('raceQuoteApis', () => {
       },
     );
 
-    // Use a short timeout (50ms) - should abort before responses arrive and return fallback
-    const result = await raceQuoteApis(50);
-
-    expect(result.quote).toBeDefined();
-    expect(result.quote.text).toBeTruthy();
-    expect(result.source).toBe('offline');
-  }, 5000); // Increase test timeout to 5 seconds
-
-  it('should return cached quote when available and all APIs fail', async () => {
-    // Setup cache with a quote - use window.localStorage directly
-    const cachedQuote = {
-      id: 'cached-1',
-      text: 'Cached quote text',
-      author: 'Cached Author',
-      source: 'dummyjson.com',
-    };
-    const cacheData = [{ ...cachedQuote, cachedAt: Date.now() }];
-    window.localStorage.setItem('quote-racer-cache', JSON.stringify(cacheData));
-
-    (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network error'));
-
-    const result = await raceQuoteApis();
-
-    expect(result.quote.id).toBe(cachedQuote.id);
-    expect(result.quote.text).toBe(cachedQuote.text);
-    expect(result.quote.author).toBe(cachedQuote.author);
-    expect(result.source).toBe('cache');
-  });
+    await expect(raceQuoteApis(50)).rejects.toThrow('All API requests failed');
+  }, 5000);
 });

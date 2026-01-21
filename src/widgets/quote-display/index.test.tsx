@@ -145,16 +145,4 @@ describe('QuoteDisplay', () => {
 
     expect(screen.getByText('Rating: none')).toBeInTheDocument();
   });
-
-  it('should format source label correctly for cache', () => {
-    render(<QuoteDisplay {...defaultProps} source='cache' />);
-
-    expect(screen.getByText(/Source: Cached result/)).toBeInTheDocument();
-  });
-
-  it('should format source label correctly for offline', () => {
-    render(<QuoteDisplay {...defaultProps} source='offline' />);
-
-    expect(screen.getByText(/Source: Offline fallback/)).toBeInTheDocument();
-  });
 });

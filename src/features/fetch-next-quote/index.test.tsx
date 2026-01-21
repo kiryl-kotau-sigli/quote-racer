@@ -1,10 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import { useFetchQuote } from './index';
 import { raceQuoteApis } from '@/entities/quote/api/service';
 import type { Quote } from '@/entities/quote';
 
 vi.mock('@/entities/quote/api/service');
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
+  return ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
 
 describe('useFetchQuote', () => {
   beforeEach(() => {
@@ -12,7 +28,7 @@ describe('useFetchQuote', () => {
   });
 
   it('should initialize with null quote and no loading state', () => {
-    const { result } = renderHook(() => useFetchQuote());
+    const { result } = renderHook(() => useFetchQuote(), { wrapper: createWrapper() });
 
     expect(result.current.quote).toBeNull();
     expect(result.current.loading).toBe(false);
@@ -33,7 +49,7 @@ describe('useFetchQuote', () => {
       source: mockSource,
     });
 
-    const { result } = renderHook(() => useFetchQuote());
+    const { result } = renderHook(() => useFetchQuote(), { wrapper: createWrapper() });
 
     await result.current.fetchQuote();
 
@@ -50,7 +66,7 @@ describe('useFetchQuote', () => {
     const errorMessage = 'Network error';
     vi.mocked(raceQuoteApis).mockRejectedValueOnce(new Error(errorMessage));
 
-    const { result } = renderHook(() => useFetchQuote());
+    const { result } = renderHook(() => useFetchQuote(), { wrapper: createWrapper() });
 
     await result.current.fetchQuote();
 
@@ -66,13 +82,13 @@ describe('useFetchQuote', () => {
   it('should handle non-Error rejection', async () => {
     vi.mocked(raceQuoteApis).mockRejectedValueOnce('String error');
 
-    const { result } = renderHook(() => useFetchQuote());
+    const { result } = renderHook(() => useFetchQuote(), { wrapper: createWrapper() });
 
     await result.current.fetchQuote();
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe('Failed to fetch quote');
+      expect(result.current.error).toBe('String error');
     });
   });
 
@@ -84,7 +100,7 @@ describe('useFetchQuote', () => {
 
     vi.mocked(raceQuoteApis).mockReturnValueOnce(promise);
 
-    const { result } = renderHook(() => useFetchQuote());
+    const { result } = renderHook(() => useFetchQuote(), { wrapper: createWrapper() });
 
     const fetchPromise = result.current.fetchQuote();
 
@@ -112,7 +128,7 @@ describe('useFetchQuote', () => {
       .mockResolvedValueOnce({ quote: mockQuote1, source: 'source1' })
       .mockResolvedValueOnce({ quote: mockQuote2, source: 'source2' });
 
-    const { result } = renderHook(() => useFetchQuote());
+    const { result } = renderHook(() => useFetchQuote(), { wrapper: createWrapper() });
 
     await result.current.fetchQuote();
     await waitFor(() => expect(result.current.quote).toEqual(mockQuote1));

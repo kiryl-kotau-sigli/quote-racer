@@ -11,14 +11,6 @@ describe('formatSourceLabel', () => {
     expect(formatSourceLabel('')).toBeNull();
   });
 
-  it('should return "Cached result" for cache source', () => {
-    expect(formatSourceLabel('cache')).toBe('Cached result');
-  });
-
-  it('should return "Offline fallback" for offline source', () => {
-    expect(formatSourceLabel('offline')).toBe('Offline fallback');
-  });
-
   it('should extract hostname from http URL', () => {
     expect(formatSourceLabel('http://example.com/path')).toBe('example.com');
     expect(formatSourceLabel('http://api.example.com:8080/endpoint')).toBe('api.example.com');

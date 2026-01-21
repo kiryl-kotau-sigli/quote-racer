@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { raceQuoteApis } from '@/entities/quote/api/service';
 import type { QuoteApiResponse } from '@/entities/quote';
 import type { Quote } from '@/entities/quote';
@@ -11,42 +12,57 @@ interface UseFetchQuoteResult {
   fetchQuote: (options?: { keepPrevious?: boolean }) => Promise<void>;
 }
 
+const QUERY_KEY = ['quote'] as const;
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return 'Failed to fetch quote';
+}
+
 export function useFetchQuote(): UseFetchQuoteResult {
-  const [quote, setQuote] = useState<Quote | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [source, setSource] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const keepPreviousRef = useRef(false);
 
-  const fetchQuote = useCallback(async (options?: { keepPrevious?: boolean }) => {
-    const keepPrevious = options?.keepPrevious ?? false;
-    setLoading(true);
-    setError(null);
-    if (!keepPrevious) {
-      setQuote(null);
-      setSource(null);
-    }
-
-    try {
-      const result: QuoteApiResponse = await raceQuoteApis();
-      setQuote(result.quote);
-      setSource(result.source);
-      setError(null);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch quote';
-      setError(errorMessage);
-      if (!keepPrevious) {
-        setQuote(null);
+  const { data, isLoading, error, refetch, isFetching } = useQuery<QuoteApiResponse, unknown>({
+    queryKey: QUERY_KEY,
+    queryFn: async () => {
+      try {
+        return await raceQuoteApis();
+      } catch (err) {
+        throw err instanceof Error ? err : new Error(getErrorMessage(err));
       }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    enabled: false,
+    retry: false,
+    placeholderData: (previous) => {
+      return keepPreviousRef.current ? previous : undefined;
+    },
+  });
+
+  const fetchQuote = useCallback(
+    async (options?: { keepPrevious?: boolean }) => {
+      const keepPrevious = options?.keepPrevious ?? false;
+      keepPreviousRef.current = keepPrevious;
+
+      if (!keepPrevious) {
+        queryClient.setQueryData(QUERY_KEY, undefined);
+      }
+
+      await refetch();
+    },
+    [refetch, queryClient],
+  );
 
   return {
-    quote,
-    loading,
-    error,
-    source,
+    quote: data?.quote ?? null,
+    loading: isLoading || isFetching,
+    error: error ? getErrorMessage(error) : null,
+    source: data?.source ?? null,
     fetchQuote,
   };
 }

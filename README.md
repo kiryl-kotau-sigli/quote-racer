@@ -6,7 +6,7 @@ A React application that fetches quotes from multiple APIs, racing for the faste
 
 ## About
 
-The main screen of the application displays a random quote retrieved from a web API and provides a button to display the next random quote. The application is able to handle a lack of network connectivity gracefully by showing cached quotes and hardcoded fallback quotes.
+The main screen of the application displays a random quote retrieved from a web API and provides a button to display the next random quote.
 
 This application implements a race condition pattern to fetch content from multiple APIs concurrently and displays the first successful response. Due to limitations with available quote APIs (some require API keys, others have CORS restrictions, or are simply unavailable), the application uses a combination of different content sources:
 
@@ -28,6 +28,7 @@ This project follows the [Feature-Sliced Design (FSD)](https://feature-sliced.de
 - **`shared/`** - Reusable UI components, utilities, and infrastructure code
 
 This architecture promotes:
+
 - **Scalability** - Easy to add new features without affecting existing code
 - **Maintainability** - Clear separation of concerns and predictable code organization
 - **Reusability** - Shared components and utilities can be used across the application
@@ -38,8 +39,6 @@ This architecture promotes:
 ### User Stories
 
 - **Fetch quotes from multiple APIs, racing for the fastest response** - The application concurrently requests quotes from multiple sources and displays the first successful response, ensuring optimal performance.
-
-- **Handle offline gracefully** - When network connectivity is unavailable, the application falls back on a set of cached quotes and local hardcoded quotes, ensuring users always have content to view.
 
 - **Rate quotes locally** - Users can rate quotes using a star rating system. Ratings are stored locally in the browser without requiring a backend, allowing for a personalized experience.
 
@@ -131,6 +130,7 @@ yarn lint
 - TypeScript
 - Vite
 - Tailwind CSS
+- TanStack Query
 - Zod
 - Vitest
 - React Testing Library

@@ -111,7 +111,7 @@ describe('useRateQuote', () => {
     });
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to save rating:', expect.any(Error));
-    expect(result.current.currentRating).toBeNull(); // Should not update on error
+    expect(result.current.currentRating).toBeNull();
 
     consoleErrorSpy.mockRestore();
   });
@@ -122,12 +122,8 @@ describe('useRateQuote', () => {
 
     const { result } = renderHook(() => useRateQuote('quote-1'));
 
-    // Start the rate operation
     result.current.rateQuote(5);
 
-    // Since saveQuoteRating is synchronous in the actual implementation,
-    // we need to check immediately after calling
-    // The loading state should be set and cleared synchronously
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
