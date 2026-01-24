@@ -3,6 +3,7 @@ import { QUOTE_API_ENDPOINTS } from './config';
 import type { QuoteApiResponse, QuoteApiError } from './types';
 import type { Quote } from '../model/types';
 import { API_CONFIG } from '@/shared/api/config';
+import { addQuoteToCache } from '@/shared/lib/storage/quote-cache';
 
 type QuoteApiResult =
   | { success: true; result: QuoteApiResponse; source: string }
@@ -142,6 +143,7 @@ export async function raceQuoteApis(
     );
 
     const result = await Promise.race(racePromises);
+    addQuoteToCache(result.quote);
     return result;
   } catch {
     const results = await Promise.allSettled(promises);

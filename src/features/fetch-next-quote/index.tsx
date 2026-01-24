@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { raceQuoteApis } from '@/entities/quote/api/service';
 import type { QuoteApiResponse } from '@/entities/quote';
 import type { Quote } from '@/entities/quote';
+import { getRandomCachedQuote } from '@/shared/lib/storage/quote-cache';
+import { getRandomFallbackQuote } from '@/entities/quote/model/fallback-quotes';
 
 interface UseFetchQuoteResult {
   quote: Quote | null;
@@ -33,8 +35,20 @@ export function useFetchQuote(): UseFetchQuoteResult {
     queryFn: async () => {
       try {
         return await raceQuoteApis();
-      } catch (err) {
-        throw err instanceof Error ? err : new Error(getErrorMessage(err));
+      } catch {
+        const cachedQuote = getRandomCachedQuote();
+        if (cachedQuote) {
+          return {
+            quote: cachedQuote,
+            source: 'cached',
+          };
+        }
+
+        const fallbackQuote = getRandomFallbackQuote();
+        return {
+          quote: fallbackQuote,
+          source: 'fallback',
+        };
       }
     },
     enabled: false,
@@ -58,10 +72,13 @@ export function useFetchQuote(): UseFetchQuoteResult {
     [refetch, queryClient],
   );
 
+  const hasData = data?.quote != null;
+  const displayError = error && !hasData ? getErrorMessage(error) : null;
+
   return {
     quote: data?.quote ?? null,
     loading: isLoading || isFetching,
-    error: error ? getErrorMessage(error) : null,
+    error: displayError,
     source: data?.source ?? null,
     fetchQuote,
   };
